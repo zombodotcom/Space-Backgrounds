@@ -12,19 +12,16 @@ import time
 BASE_URL = "https://www.star.nesdis.noaa.gov/goes/fulldisk_band.php"
 SAVE_DIR = "satellite_images/GeoColor/1808x1808"
 PARAMS = {"sat": "G16", "band": "GEOCOLOR", "length": 240, "dim": 1}
-ANIMATION_INTERVAL = .2  # Seconds per wallpaper change
 
 # Ensure the save directory exists
 os.makedirs(SAVE_DIR, exist_ok=True)
 
 
 def change_wallpaper(image_path, style):
-    """Set the desktop wallpaper on Windows with the selected style."""
     SPI_SETDESKWALLPAPER = 20
     SPIF_UPDATEINIFILE = 0x01
     SPIF_SENDWININICHANGE = 0x02
 
-    # Map style names to corresponding registry values
     style_map = {
         "Stretch": 2,
         "Center": 0,
@@ -34,11 +31,9 @@ def change_wallpaper(image_path, style):
     }
 
     try:
-        # Validate the image path
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Image file not found: {image_path}")
 
-        # Update the registry with the wallpaper style
         import winreg
         with winreg.OpenKey(
             winreg.HKEY_CURRENT_USER, "Control Panel\\Desktop", 0, winreg.KEY_SET_VALUE
@@ -46,7 +41,6 @@ def change_wallpaper(image_path, style):
             winreg.SetValueEx(key, "WallpaperStyle", 0, winreg.REG_SZ, str(style_map[style]))
             winreg.SetValueEx(key, "TileWallpaper", 0, winreg.REG_SZ, "0" if style != "Tile" else "1")
 
-        # Call Windows API to change wallpaper
         ctypes.windll.user32.SystemParametersInfoW(
             SPI_SETDESKWALLPAPER, 0, os.path.abspath(image_path),
             SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE
@@ -59,18 +53,15 @@ def change_wallpaper(image_path, style):
 
 
 def fetch_image_urls():
-    """Fetch Astro image URLs from the NOAA website."""
     try:
         response = requests.get(BASE_URL, params=PARAMS)
         response.raise_for_status()
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # Find the script tag containing animationImages
         script_tag = soup.find("script", text=re.compile(r"animationImages\s*=\s*\["))
         if not script_tag:
             raise ValueError("GeoColor animationImages not found on the page.")
 
-        # Extract animationImages array
         animation_images_match = re.search(r"animationImages\s*=\s*(\[[^\]]+\])", script_tag.string)
         if animation_images_match:
             animation_images_str = animation_images_match.group(1)
@@ -82,7 +73,6 @@ def fetch_image_urls():
 
 
 def download_images(image_urls):
-    """Download Astro images and skip existing ones."""
     downloaded = []
     for url in image_urls:
         local_path = os.path.join(SAVE_DIR, os.path.basename(url))
@@ -102,7 +92,6 @@ def download_images(image_urls):
 
 
 def get_existing_images():
-    """Retrieve a list of existing images in the directory."""
     return [
         os.path.join(SAVE_DIR, file)
         for file in os.listdir(SAVE_DIR)
@@ -115,6 +104,7 @@ class WallpaperApp:
         self.root = root
         self.root.title("Astro Wallpaper Manager")
         self.selected_style = tk.StringVar(value="Fit")
+        self.animation_interval = tk.DoubleVar(value=10.0)
         self.image_paths = []
         self.animating = False
         self.animation_thread = None
@@ -123,7 +113,6 @@ class WallpaperApp:
         self.update_image_list()
 
     def create_gui(self):
-        """Create the GUI layout."""
         tk.Label(
             self.root, text="Astro Wallpaper Manager", font=("Arial", 16), pady=10
         ).pack()
@@ -136,10 +125,31 @@ class WallpaperApp:
         )
         style_dropdown.pack(pady=5)
 
-        # Image Listbox
+        # Image Listbox with Scrollbar
         tk.Label(self.root, text="Available Images:", font=("Arial", 12)).pack(pady=5)
-        self.image_listbox = tk.Listbox(self.root, height=10, width=60)
-        self.image_listbox.pack(pady=5)
+        frame = tk.Frame(self.root)
+        frame.pack(pady=5)
+        self.image_listbox = tk.Listbox(frame, height=10, width=60)
+        self.image_listbox.pack(side=tk.LEFT, fill=tk.BOTH)
+        scrollbar = tk.Scrollbar(frame, orient=tk.VERTICAL, command=self.image_listbox.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.image_listbox.config(yscrollcommand=scrollbar.set)
+
+        # Total Images Count
+        self.total_images_label = tk.Label(self.root, text="Total Images: 0", font=("Arial", 10))
+        self.total_images_label.pack(pady=5)
+
+        # Animation Speed Slider and Entry
+        tk.Label(self.root, text="Animation Speed (seconds):", font=("Arial", 12)).pack(pady=5)
+        slider = tk.Scale(
+            self.root, from_=0.01, to=30.0, orient=tk.HORIZONTAL, resolution=0.01,
+            variable=self.animation_interval
+        )
+        slider.pack(pady=5)
+
+        tk.Label(self.root, text="Edit Speed:", font=("Arial", 10)).pack()
+        speed_entry = tk.Entry(self.root, textvariable=self.animation_interval, width=10)
+        speed_entry.pack(pady=5)
 
         # Buttons
         tk.Button(
@@ -161,14 +171,13 @@ class WallpaperApp:
         tk.Button(self.root, text="Exit", command=self.root.quit, padx=20, pady=10).pack()
 
     def update_image_list(self):
-        """Update the listbox with available images."""
         self.image_listbox.delete(0, tk.END)
         self.image_paths = get_existing_images()
         for img in self.image_paths:
             self.image_listbox.insert(tk.END, os.path.basename(img))
+        self.total_images_label.config(text=f"Total Images: {len(self.image_paths)}")
 
     def fetch_and_download_images(self):
-        """Fetch and download Astro images."""
         image_urls = fetch_image_urls()
         if image_urls:
             downloaded = download_images(image_urls)
@@ -179,7 +188,6 @@ class WallpaperApp:
             self.update_image_list()
 
     def set_wallpaper(self):
-        """Set the selected image as the wallpaper."""
         selected_index = self.image_listbox.curselection()
         if not selected_index:
             messagebox.showinfo("No Selection", "Please select an image from the list.")
@@ -189,21 +197,17 @@ class WallpaperApp:
             messagebox.showinfo("Success", "Wallpaper changed successfully!")
 
     def start_animation(self):
-        """Start the animated wallpaper."""
         if not self.image_paths:
             messagebox.showinfo("No Images", "No images available to animate.")
             return
-
         if self.animating:
             messagebox.showinfo("Animation Running", "Animation is already running.")
             return
-
         self.animating = True
         self.animation_thread = threading.Thread(target=self.animate_wallpapers)
         self.animation_thread.start()
 
     def stop_animation(self):
-        """Stop the animated wallpaper."""
         self.animating = False
         if self.animation_thread:
             self.animation_thread.join()
@@ -211,13 +215,12 @@ class WallpaperApp:
         messagebox.showinfo("Animation Stopped", "Wallpaper animation stopped.")
 
     def animate_wallpapers(self):
-        """Cycle through wallpapers in a loop."""
         while self.animating:
             for image in self.image_paths:
                 if not self.animating:
                     break
                 change_wallpaper(image, self.selected_style.get())
-                time.sleep(ANIMATION_INTERVAL)
+                time.sleep(self.animation_interval.get())
 
 
 if __name__ == "__main__":
