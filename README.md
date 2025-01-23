@@ -6,6 +6,8 @@ Turn your desktop into a **real-time celestial masterpiece** with the Astro Wall
 
 ---
 
+![](https://github.com/zombodotcom/Space-Backgrounds/Animation.gif)
+
 ## 🌟 Features
 
 - **Fetch Stunning Satellite Images** 🌍  
