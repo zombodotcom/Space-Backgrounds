@@ -50,10 +50,11 @@ Run the Application
 ```
     python astro_wallpaper_manager.py
 ```
-    Enjoy the Universe! 🌌
-        Fetch and download the latest satellite images.
-        Select a wallpaper style.
-        Animate your desktop background with celestial beauty.
+
+## Enjoy the Universe! 🌌
+- Fetch and download the latest satellite images.
+- Select a wallpaper style.
+- Animate your desktop background with celestial beauty.
 
 ## 📋 Controls
 - Fetch and Download Images 🌐
