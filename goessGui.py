@@ -5,8 +5,6 @@ from tkinter import filedialog, messagebox, ttk
 import requests
 from bs4 import BeautifulSoup
 import re
-import threading
-import time
 
 # Constants
 BASE_URL = "https://www.star.nesdis.noaa.gov/goes/fulldisk_band.php"
@@ -18,6 +16,7 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 
 
 def change_wallpaper(image_path, style):
+    """Set the desktop wallpaper on Windows with the selected style."""
     SPI_SETDESKWALLPAPER = 20
     SPIF_UPDATEINIFILE = 0x01
     SPIF_SENDWININICHANGE = 0x02
@@ -34,6 +33,7 @@ def change_wallpaper(image_path, style):
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Image file not found: {image_path}")
 
+        # Update Windows registry for wallpaper style
         import winreg
         with winreg.OpenKey(
             winreg.HKEY_CURRENT_USER, "Control Panel\\Desktop", 0, winreg.KEY_SET_VALUE
@@ -41,6 +41,7 @@ def change_wallpaper(image_path, style):
             winreg.SetValueEx(key, "WallpaperStyle", 0, winreg.REG_SZ, str(style_map[style]))
             winreg.SetValueEx(key, "TileWallpaper", 0, winreg.REG_SZ, "0" if style != "Tile" else "1")
 
+        # Call Windows API to change wallpaper
         ctypes.windll.user32.SystemParametersInfoW(
             SPI_SETDESKWALLPAPER, 0, os.path.abspath(image_path),
             SPIF_UPDATEINIFILE | SPIF_SENDWININICHANGE
@@ -53,6 +54,7 @@ def change_wallpaper(image_path, style):
 
 
 def fetch_image_urls():
+    """Fetch Astro image URLs from the NOAA website."""
     try:
         response = requests.get(BASE_URL, params=PARAMS)
         response.raise_for_status()
@@ -73,6 +75,7 @@ def fetch_image_urls():
 
 
 def download_images(image_urls):
+    """Download Astro images and skip existing ones."""
     downloaded = []
     for url in image_urls:
         local_path = os.path.join(SAVE_DIR, os.path.basename(url))
@@ -92,6 +95,7 @@ def download_images(image_urls):
 
 
 def get_existing_images():
+    """Retrieve a list of existing images in the directory."""
     return [
         os.path.join(SAVE_DIR, file)
         for file in os.listdir(SAVE_DIR)
@@ -102,12 +106,13 @@ def get_existing_images():
 class WallpaperApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Astro Wallpaper Manager")
+        self.root.title("Efficient Astro Wallpaper Manager")
         self.selected_style = tk.StringVar(value="Fit")
         self.animation_interval = tk.DoubleVar(value=10.0)
         self.image_paths = []
+        self.current_image_index = 0
         self.animating = False
-        self.animation_thread = None
+        self.animation_job = None
 
         self.create_gui()
         self.update_image_list()
@@ -204,23 +209,24 @@ class WallpaperApp:
             messagebox.showinfo("Animation Running", "Animation is already running.")
             return
         self.animating = True
-        self.animation_thread = threading.Thread(target=self.animate_wallpapers)
-        self.animation_thread.start()
+        self.animate_wallpapers()
 
     def stop_animation(self):
         self.animating = False
-        if self.animation_thread:
-            self.animation_thread.join()
-            self.animation_thread = None
+        if self.animation_job:
+            self.root.after_cancel(self.animation_job)
+            self.animation_job = None
         messagebox.showinfo("Animation Stopped", "Wallpaper animation stopped.")
 
     def animate_wallpapers(self):
-        while self.animating:
-            for image in self.image_paths:
-                if not self.animating:
-                    break
-                change_wallpaper(image, self.selected_style.get())
-                time.sleep(self.animation_interval.get())
+        if not self.animating:
+            return
+        image_path = self.image_paths[self.current_image_index]
+        change_wallpaper(image_path, self.selected_style.get())
+        self.current_image_index = (self.current_image_index + 1) % len(self.image_paths)
+        self.animation_job = self.root.after(
+            int(self.animation_interval.get() * 1000), self.animate_wallpapers
+        )
 
 
 if __name__ == "__main__":
