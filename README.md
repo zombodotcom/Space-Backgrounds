@@ -1,6 +1,8 @@
 # 🌌 Astro Wallpaper Manager 🚀
 
-Turn your desktop into a **real-time celestial masterpiece** with the Astro Wallpaper Manager! ✨ Fetch high-quality satellite images, customize your wallpaper style, and even animate your desktop background for a dynamic, out-of-this-world experience. 🌠
+Turn your desktop into a **real-time celestial masterpiece** with the Astro Wallpaper Manager! 
+
+✨ Fetch high-quality satellite images, customize your wallpaper style, and even animate your desktop background for a dynamic, out-of-this-world experience. 🌠
 
 ---
 
