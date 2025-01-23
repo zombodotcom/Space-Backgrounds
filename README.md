@@ -6,7 +6,7 @@ Turn your desktop into a **real-time celestial masterpiece** with the Astro Wall
 
 ---
 
-![](https://github.com/zombodotcom/Space-Backgrounds/Animation.gif)
+![Local GIF](https://raw.githubusercontent.com/zombodotcom/Space-Backgrounds/refs/heads/main/Animation.gif)
 
 ## 🌟 Features
 
