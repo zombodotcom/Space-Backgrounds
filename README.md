@@ -30,52 +30,6 @@ Turn your desktop into a **real-time celestial masterpiece** with the Astro Wall
 ## 🛠️ How to Use
 
 1. **Clone the Repository**  
-   ```bash
-   git clone https://github.com/yourusername/astro-wallpaper-manager.git
-   cd astro-wallpaper-manager
-2. **Install Dependencies**
-    ```
-    pip install requests beautifulsoup4
-    ```
-3. Run the Application
-    ```
-    python astro_wallpaper_manager.py
-    ```
-
-Here’s the full Markdown source for your README without splitting into sections, ensuring it is properly formatted and complete:
-
-# 🌌 Astro Wallpaper Manager 🚀
-
-Turn your desktop into a **real-time celestial masterpiece** with the Astro Wallpaper Manager! ✨ Fetch high-quality satellite images, customize your wallpaper style, and even animate your desktop background for a dynamic, out-of-this-world experience. 🌠
-
----
-
-## 🌟 Features
-
-- **Fetch Stunning Satellite Images** 🌍  
-  Automatically download the latest GeoColor images from the NOAA GOES satellite.
-
-- **Customizable Wallpaper Styles** 🎨  
-  Choose from:
-  - `Stretch`
-  - `Center`
-  - `Tile`
-  - `Fit`
-  - `Fill`
-
-- **Dynamic Animation** 🎥  
-  Animate your desktop background with seamless transitions between images. Adjust the speed to your liking, from as fast as `0.01` seconds to a leisurely `30` seconds.
-
-- **Efficient Design** ⚡  
-  - Skips downloading images you already have.  
-  - Uses the lightweight and responsive `tkinter` GUI.  
-  - No resource-hungry processes—everything runs smoothly!
-
----
-
-## 🛠️ How to Use
-
-1. **Clone the Repository**  
 ```
    git clone https://github.com/yourusername/astro-wallpaper-manager.git
    cd astro-wallpaper-manager
@@ -148,7 +102,7 @@ Fork the repo, create a pull request, and let's make it stellar. 🌟
 
     Satellite images from the NOAA GOES Viewer.
     Built with ❤️ by space enthusiasts.
-    
+
 ## 📜 License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
